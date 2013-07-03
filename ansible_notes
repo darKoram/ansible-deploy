@@ -1,0 +1,17 @@
+ansible_notes
+
+# a bit old but good
+https://gist.github.com/marktheunissen/2979474
+
+want to install mutiple packages using a list format
+https://github.com/ansible/ansible/issues/279
+using with_items
+
+users that vary with hosts
+https://groups.google.com/forum/#!msg/ansible-project/edx8zaMbg5g/M79z0i2sBEoJ
+
+# Steps to use aws CLI
+http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/concepts.html#command-line-tools-api-tools
+
+
+

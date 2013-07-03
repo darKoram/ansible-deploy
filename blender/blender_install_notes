@@ -1,0 +1,194 @@
+
+on linux currently). These are meant as an introduction to people who may
+want to try out git svn but a good reading on git basics is strongly
+recommended.
+
+http://wiki.blender.org/index.php/User:Psy-Fi/Git-Svn
+
+Any additions are welcome. Of course it may be a good idea to have a
+dedicated public page for that (Not sure if this particular page can be
+edited by others).
+
+kalast@gmail.com
+
+
+The other nice thing of git svn is that once you go with git you can use
+github or gitorious with no problems.
+I'm actually currently keeping a branch in github that I pull from a
+gitorious blender mirror.
+It took me some time to get everything sorted out, but after that, it's
+really nice to work.
+
+Part of my git workflow is described here:
+http://wiki.blender.org/index.php/User:Dfelinto#Git
+
+Regards,
+Dalai
+
+
+
+********************************************************
+June 7 build
+
+Could not find platform dependent libraries <exec_prefix>
+Consider setting $PYTHONHOME to <prefix>[:<exec_prefix>]
+
+  Addons path
+  '/home/kesten/vcp/git/blender/blender-trunk/blender/release/scripts/addons'
+  is missing, This is an 'svn external', which are known not to work with
+  bridges to other version control systems: * CONTINUING WITHOUT ADDONS *
+
+Translation path
+  '/home/kesten/vcp/git/blender/blender-trunk/blender/release/datafiles/locale'
+  is missing, This is an 'svn external', which are known not to work with
+  bridges to other version control systems, disabling 'WITH_INTERNATIONAL'.
+
+
+Linking CXX executable accum_test
+/opt/lib/oiio/lib/libOpenImageIO.so: undefined reference to `dlopen'
+/opt/lib/oiio/lib/libOpenImageIO.so: undefined reference to `dlclose'
+/opt/lib/oiio/lib/libOpenImageIO.so: undefined reference to `dlerror'
+/opt/lib/oiio/lib/libOpenImageIO.so: undefined reference to `dlsym'
+collect2: ld returned 1 exit status
+make[2]: *** [liboslexec/accum_test] Error 1
+make[1]: *** [liboslexec/CMakeFiles/accum_test.dir/all] Error 2
+make[1]: *** Waiting for unfinished jobs....
+Linking CXX executable closure_test
+[ 91%] Built target closure_test
+make: *** [all] Error 2
+OpenShadingLanguage-1.3.0 failed to compile, exiting
+Reading package lists... Done
+Building dependency tree       
+Reading state information... Done
+cmake is already the newest version.
+cmake-curses-gui is already the newest version.
+0 upgraded, 0 newly installed, 0 to remove and 6 not upgraded.
+
+CMake Error: The following variables are used in this project, but they are set to NOTFOUND.
+Please set them or make sure they are set and tested correctly in the CMake files:
+/home/kesten/vcp/git/blender/blender-trunk/blender/extern/carve/Boost_INCLUDE_DIR
+   used as include directory in directory /home/kesten/vcp/git/blender/blender-trunk/blender/extern/carve
+
+
+#double check that this doesn't always download as root
+git svn rebase
+error: could not lock config file .git/svn/.metadata: Permission denied
+config svn-remote.svn.reposRoot https://svn.blender.org/svnroot/bf-blender: command returned error: 255
+sudo git svn rebase worked
+had gotten wrong ownership somehow
+
+ find blender-trunk \( -type f -execdir chmod 644 {} \; \) \
+                  -o \( -type d -execdir chmod 755 {} \; \)
+
+
+
+#It appears the problems arise here:
+# Change the extensions location
+svn propset svn:externals "addons https://svn.blender.org/svnroot/bf-extensions/tags/2_63_release/py/scripts/addons" release/scripts
+svn ci release/scripts \
+       -m "2.63 release tag"
+ 
+# ---
+ 
+# Change the extensions location
+svn propset svn:externals "locale https://svn.blender.org/svnroot/bf-translations/tags/2_63_release/locale" release/datafiles
+svn ci release/datafiles \
+       -m "2.63 release tag"
+
+
+#DEBUG OPTIONS
+option(WITH_PYTHON_SAFETY "Enable internal API error checking to track invalid data to prevent crash on access (at the expense of some effeciency, only enable for development)." OFF)
+option(WITH_PYTHON_MODULE "Enable building as a python module which runs without a user interface, like running regular blender in background mode (experimental, only enable for development)" OFF)
+
+option(WITH_CXX_GUARDEDALLOC "Enable GuardedAlloc for C++ memory allocation tracking (only enable for development)" OFF)
+mark_as_advanced(WITH_CXX_GUARDEDALLOC)
+
+
+in build_linux/cmake/macros.cmake
+	if(WITH_BOOST)
+		link_directories(${BOOST_LIBPATH})
+
+
+ed
+rm: cannot remove `/tmp/ilmbase-2.0.0/include/OpenEXR/IlmThreadPool.h': Permission denied
+rm: cannot remove `/tmp/ilmbase-2.0.0/include/OpenEXR/halfExport.h': Permission denied
+rm: cannot remove `/tmp/ilmbase-2.0.0/include/OpenEXR/IlmThreadNamespace.h': Permission denied
+rm: cannot remove `/tmp/ilmbase-2.0.0/include/OpenEXR/ImathFrustum.h': Permission denied
+rm: cannot remov
+
+
+CMake Error at cmake_install.cmake:38 (FILE):
+  file INSTALL cannot copy file
+  "/home/kesten/src/blender-deps/ILMBase-2.0.0/build/libHalf.la" to
+  "/tmp/ilmbase-2.0.0/lib/libHalf.la".
+
+
+make: *** [install] Error 1
+rm: cannot remove `/tmp/ilmbase': Operation not permitted
+ln: failed to create symbolic link `/tmp/ilmbase/ilmbase-2.0.0': Permission denied
+Done compiling ILMBase-2.0.0!
+Building OpenEXR-2.0.0
+
+
+
+THE BIG ENCHILADA
+
+It seems that all my build problems were related to the install_deps.sh script which came down from heaven non-executable.  So i knee jerk fixed it by running it as sudo.  Bad.  All the subsequent folders are owned by root and the build fails fast and furious all around.
+
+****************************************************8
+june 10
+
+wiped out ~/src, included the following in a shell script makelibs to link the location of the libs on the commandline
+
+
+
+make -j2 BUILD_CMAKE_ARGS=" -D BOOST_ROOT=/opt/lib/boost -D Boost_NO_SYSTEM_PATHS=ON -D OPENEXR_ROOT_DIR=/opt/lib/openexr -D WITH_CODEC_FFMPEG=ON -D FFMPEG_LIBRARIES='avformat;avcodec;avutil;avdevice;swscale;rt;theoraenc;theora;theoradec;vorbisenc;vorbisfile;vorbis;x264;openjpeg' -D FFMPEG=/opt/lib/ffmpeg" 
+
+Now build seems to complete but install fails
+
+[100%] Built target bf_intern_cycles
+Scanning dependencies of target blender
+[100%] make[2]: *** No rule to make target `/opt/lib/lib', needed by `bin/blender'.  Stop.
+make[2]: *** Waiting for unfinished jobs....
+Building C object source/creator/CMakeFiles/blender.dir/buildinfo.c.o
+make[1]: *** [source/creator/CMakeFiles/blender.dir/all] Error 2
+make: *** [all] Error 2
+
+
+Added to build_files/cmake/Modules/FindOpenEXR.cmake the /opt/lib line below
+SET(_openexr_SEARCH_DIRS
+  ${OPENEXR_ROOT_DIR}
+  /usr/local
+  /sw # Fink
+  /opt/local # DarwinPorts
+  /opt/csw # Blastwave
+  /opt/lib
+)
+
+*****************SOLVED*************
+
+The single "make" build is from /blender dir using GNUMakefile which is not set up to use the instal_deps.sh settings
+Added removed quotes and j2 saving to cmakelibs.  Run from /build_linux to generate Makefile.  Then make.
+LIB_DIR:=/opt/lib to GNUMakefile.
+and it now compiles.
+
+
+LIBDIRValue of LIBDIR is 
+LIBDIRValue of LIBDIR is /opt/lib
+-- Could NOT find Spacenav (missing:  SPACENAV_LIBRARY SPACENAV_INCLUDE_DIR) 
+Boost_INCLUDE_DIR Boost_INCLUDE_DIR /opt/lib/boost/include
+BOOST_INCLUDE_DIR/opt/lib/boost/include
+-- Blender Skipping: (bf_collada;bf_intern_ctr;bf_intern_utfconv;extern_openjpeg;extern_redcode)
+-- Configuring done
+-- Generating done
+
+However, still getting an error about No target to make /opt/lib/lib needed for bin/blender
+Probably a bad generation or left-over edit from me.  Revert changed files, re-sync to blender-trunk.
+make, make install from build_linux
+Note, we probably still have the cmakelibs generated make files using the commandline options
+
+Now try it in the cloud... without making the permissions mistake when running install_deps.sh
+
+
+
+

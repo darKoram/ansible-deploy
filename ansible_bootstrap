@@ -1,0 +1,33 @@
+
+sudo apt-get install python-pip python-dev build-essential 
+sudo pip install --upgrade pip 
+
+# install virtualenv and wrapper tools
+sudo pip install --upgrade virtualenv
+
+
+echo "export WORKON_HOME=~/.virtualenvs" >> ~/.bashrc
+sudo pip install virtualenvwrapper
+source /usr/bin/virtualenvwrapper.sh
+
+
+# if ansible package is avaliable for the system
+sudo pip install ansible
+# otherwise pull and build it
+ansible_exists = command -v foo >/dev/null 2>&1
+if [ $ansible_exists ];
+then
+	echo ansible successfully installed at $ansible_exists
+else 
+	#required for control node only
+	pip install paramiko
+	pip install PyYAML
+	pip install jinja2
+
+	sudo apt-get install git
+	mkdir ansible
+	cd ansible
+	git clone git://github.com/ansible/ansible.git
+fi
+
+

@@ -1,0 +1,11 @@
+#pythonenv_install
+
+enthought linux 64 bit
+https://www.enthought.com/downloads/canopy/rh5-64/free/
+mv index.html canopy-1.0.0-rh5-64.sh
+yes | bash canopy-1.0.0-rh5-64.sh
+
+
+sudo apt-get install ipython
+sudo apt-get install ipython-notebook
+

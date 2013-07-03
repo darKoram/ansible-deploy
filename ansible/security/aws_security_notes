@@ -1,0 +1,31 @@
+aws_security_notes
+
+INPUT
+openssl req -x509 -newkey rsa:2048 -out aws_user.pem -outform PEM -days 1825
+ERROR
+139999579035296:error:0E065068:configuration file routines:STR_COPY:variable has no value:conf_def.c:618:line 54
+FIX
+change $dir to expanded /home/kesten on line 54
+
+INPUT
+openssl req -x509 -newkey rsa:2048 -out aws_user.pem -outform PEM -days 1825
+ERROR
+writing new private key to '/home/kesten/private/cakey.pem'
+/home/kesten/private/cakey.pem: No such file or directory
+139884786882208:error:02001002:system library:fopen:No such file or directory:bss_file.c:398:fopen('/home/kesten/private/cakey.pem','w')
+139884786882208:error:20074002:BIO routines:FILE_CTRL:system lib:bss_file.c:400:
+CAUSE
+path to cakey.pem did not exists (missing myCA in path)
+
+
+kesten@kesten-K42Jr:~/myCA$ ansible all -m ping --ask-pass
+SSH password: 
+127.0.0.1 | FAILED => FAILED: [Errno 111] Connection refused
+
+54.215.139.178 | success >> {
+    "changed": false, 
+    "ping": "pong"
+}
+
+
+

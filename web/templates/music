@@ -1,0 +1,13 @@
+Alias /music "/home/kesten/Music"
+<Directory "/home/kesten/Music">
+    Options             Indexes MultiViews FollowSymlinks
+    AllowOverride       Indexes
+    MusicIndex          On +Stream -Download +Search +Rss -Tarball
+    MusicSortOrder      album disc track artist title length bitrate freq filetype
+    MusicFields         title artist album length bitrate
+    MusicPageTitle      AudioStreaming
+    MusicDefaultCss     musicindex.css
+    MusicDefaultDisplay HTML
+    MusicIndexCache     file://tmp/musicindex
+    MusicDirPerLine     3
+</Directory>

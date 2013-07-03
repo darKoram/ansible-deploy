@@ -1,0 +1,11 @@
+#aws_security
+
+#sudo apt-get install openssl
+cd && mkdir -p myCA/signedcerts && mkdir myCA/private && cd myCA
+echo '01' > serial  && touch index.txt
+export OPENSSL_CONF=~/myCA/caconfig.cnf
+#each user must replace aws_user with their name 
+openssl req -x509 -newkey rsa:2048 -out aws_user.pem -outform PEM -days 1825
+openssl x509 -in aws_user.pem -out aws_user.crt
+
+

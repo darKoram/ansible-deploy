@@ -1,0 +1,35 @@
+sudo apt-get install yum
+
+git config --global user.name darKoram
+git config --global user.email solarmobiletrailers@gmail.com
+git config --global credential.helper cache
+git config --global core.excludesfile ~/.gitignore_global
+
+#qtcreator
+sudo add-apt-repository ppa:canonical-qt5-edgers/qt5-proper && sudo add-apt-repository ppa:ubuntu-sdk-team/ppa && sudo apt-get update && sudo apt-get install ubuntu-sdk notepad-qml
+
+# android studio
+mkdir /opt/astudio
+cd /opt/astudio
+wget http://dl.google.com/android/studio/android-studio-bundle-130.687321-linux.tgz
+tar -xzvf *.tzg
+echo 'export PATH=android-studio/bin/:$PATH' >> ~/.bashrc
+# astudio downloads as root with permissions tight
+sudo chown -R /opt/astudio
+sudo find /opt/astudio -type d -exec chmod 755 {} \;
+sudo find /opt/astudio -type f -exec chmod 644 {} \;
+sudo chmod ug+x fsnotifier fsnotifier64 inspect.sh studio.sh
+echo 'export PATH=/opt/astudio/android-studio/bin:$PATH' >> ~/.bashrc
+echo 'export JAVA_HOME=/opt/java/oracle/jdk1.7.0_21' >> ~/.bashrc
+./studio.sh
+
+http://developer.android.com/tools/device.html
+http://blog.jeshurun.ca/technology/connecting-the-google-nexus-7-to-ubuntu-mint-over-usb
+If you're developing on Ubuntu Linux, you need to add a udev rules file that contains a USB configuration for each type of device you want to use for development. In the rules file, each device manufacturer is identified by a unique vendor ID, as specified by the ATTR{idVendor} property. For a list of vendor IDs, see USB Vendor IDs, below. To set up device detection on Ubuntu Linux: 
+
+# opencv
+http://sourceforge.net/projects/opencvlibrary/files/opencv-unix/2.4.5/opencv-2.4.5.tar.gz/download
+
+
+
+

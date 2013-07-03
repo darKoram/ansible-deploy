@@ -1,0 +1,18 @@
+wget https://raw.github.com/neo4j-contrib/neo4j-puppet/master/go
+chmod +x go
+sudo ./go true ubuntu mypwd #accepts Oracle license, sets a username and password
+
+notice: /Stage[main]/Neo4j::Ebs/Mount[/backup]/ensure: defined 'ensure' as 'mounted'
+err: /Stage[main]/Neo4j::Ebs/Mount[/backup]: Could not evaluate: Execution of '/bin/mount -o nosuid /backup' returned 32: mount: special device /dev/xvdj does not exist
+
+notice: /Stage[main]/Neo4j::Ebs/File[/backup/neo4j]: Dependency Mount[/backup] has failures: true
+warning: /Stage[main]/Neo4j::Ebs/File[/backup/neo4j]: Skipping because of failed dependencies
+notice: /Stage[main]/Neo4j::Linux/Exec[neo4j_pam_limits]/returns: executed successfully
+notice: /Stage[main]/Neo4j::Ubuntu/File[neo4j auth extension]/ensure: defined content as '{md5}b2266170c74dbe0447da9667097980eb'
+notice: /Stage[main]/Neo4j::Ubuntu/File[neo4j auth extension link]/ensure: created
+err: /Stage[main]/Neo4j::Ubuntu/Exec[restart neo4j]/returns: change from notrun to 0 failed: /usr/sbin/service neo4j-service restart returned 1 instead of one of [0] at /var/tmp/neo4j/manifests/ubuntu.pp:59
+notice: /Stage[main]/Neo4j::Ubuntu/Service[neo4j-service]: Dependency Exec[restart neo4j] has failures: true
+warning: /Stage[main]/Neo4j::Ubuntu/Service[neo4j-service]: Skipping because of failed dependencies
+err: /Stage[main]/Neo4j::Ubuntu/Service[neo4j-service]: Failed to call refresh: Could not start Service[neo4j-service]: Execution of '/etc/init.d/neo4j-service start' returned 1:  at /var/tmp/neo4j/manifests/ubuntu.pp:102
+notice: Finished catalog run in 803.23 seconds
+

@@ -1,0 +1,39 @@
+#!/bin/bash
+# this is all done by apt-get install
+#echo "export JAVA_HOME=/usr" >> ~/.bashrc
+# corresponding to unzip dir below
+#echo "export EC2_HOME=/opt/ec2/ec2-api-tools-1.6.7.3" >> ~/.bashrc
+#echo "export PATH=$PATH:$EC2_HOME/bin" >> ~/.bashrc
+
+#source ~/.bashrc
+sudo apt-get install ec2-cli-tools
+	
+# gives a 404
+wget http://www.amazon.com/gp/redirect.html/ref=aws_rc_ec2tools?location=http://s3.amazonaws.com/ec2-downloads/ec2-api-tools.zip&token=A80325AA4DAB186C80828ED5138633E3F49160D9
+sudo mkdir /opt/ec2
+sudo mv ec2-api-tools.zip /opt/ec2
+sudo unzip ec2-api-tools.zip
+
+echo "EC2_PRIVATE_KEY=%USERPROFILE%\Documents\aws\private-key.pem" >> ~/.bashrc
+echo "EC2_CERT=%USERPROFILE%\Documents\aws\certificate.pem" >> ~/.bashrc
+echo "EC2_URL=https://ec2.us-west-2.amazonaws.com/" >> ~/.bashrc
+
+
+cd ~/aws
+chmod 400 devserver.pem
+ssh -v -i ~/aws/devserver.pem ubuntu@ec2-54-214-55-185.us-west-2.compute.amazonaws.com
+
+# switch try to use java connection
+cd /usr/lib/firefox-addons/plugins
+ln -s /opt/java/oracle/jdk1.7.0_21/jre/lib/amd64/libnpjp2.so
+cd /opt/google/chrome
+mkdir plugins
+cd plugins
+ln -s /opt/java/oracle/jdk1.7.0_21/jre/lib/amd64/libnpjp2.so
+#restart chrome
+
+#debuggin ssh connection timeout
+traceroute -T -n -m 15 ec2-54-214-55-185.us-west-2.compute.amazonaws.com
+# fine.  Solution is
+#http://stackoverflow.com/questions/5961991/ssh-connect-to-ec2-instance-of-natty-operation-timeout
+

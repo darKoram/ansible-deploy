@@ -1,0 +1,20 @@
+
+tasks:
+	- name: install pip
+	  action: sudo apt-get install python-pip python-dev build-essential 
+		  sudo pip install --upgrade pip 
+
+	- name: install virtualenv 
+	  action: sudo pip install --upgrade virtualenv
+	- name: install virtualenvwrapper
+	  action: sudo pip install virtualenvwrapper
+	- name: set environment vars for wrapper
+	  action: echo "export WORKON_HOME=~/.virtualenvs" >> ~/.bashrc
+		  source /usr/bin/virtualenvwrapper.sh
+
+
+	- name: install ansible
+	  action sudo pip install ansible
+
+
+

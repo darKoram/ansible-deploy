@@ -1,0 +1,14 @@
+# java_install
+
+# JAVA
+# have to manually get the JDK from oracle (works with android, eclipse and intellij)
+# because there is a checkbox agreement guard blocking wget
+http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html
+tar -zxvf 
+sudo update-alternatives --install "/usr/bin/java" "java" \
+"/opt/java/oracle/jdk1.7.0_21/bin" 1
+sudo update-alternatives --config java
+
+# APACHE COMMONS
+sudo apt-get install libcommons-collections3-java libcommons-collections3-java-doc
+

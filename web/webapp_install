@@ -1,0 +1,36 @@
+# webapp
+
+# google web toolkit
+# http://askubuntu.com/questions/221893/gwt-google-web-toolkit-designer-not-working-on-ubuntu-12-10
+
+hosts: all
+user: root
+var_files:
+    - ~/vcp/git/ansible-deploy/web/templates/music
+vars: 
+  - music_template="~/vcp/git/ansible-deploy/web/templates/music"
+  - music=/etc/apache2/sites-available/music
+tasks:
+	- name: install LAMP
+	  apt: package="lamp-server^ phpmyadmin" 
+
+# mysql pwd
+# workless2010
+
+    - name: install music server
+            # http://auriza.site40.net/notes/ubuntu/audio-streaming-server-apache2/
+      apt: package=libapache2-mod-musicindex state=present
+    - name: create musicindex
+      action: command sudo a2enmod musicindex
+    - name: restart apache2
+      action: command sudo /etc/init.d/apache2 restart
+    - name: create music config file
+      action: template src=${music_template} dest=${music}
+    - name: run config a2ensite
+      action: command a2ensite ${music}
+    - name: restart apache
+      action: command sudo /etc/init.d/apache2 reload
+    - name: set permissions on Music dir
+      action: command chmod -R o+rx ~/Music
+      
+

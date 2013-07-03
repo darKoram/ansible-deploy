@@ -1,0 +1,24 @@
+# call this from project_root/ansible directory
+
+echo [ansible-masters] > production
+# replace ips with master sites
+echo 127.0.0.1 >> production
+echo 54.215.139.178 >> production
+
+touch stage
+touch dev
+mkdir -p groups_vars
+mkdir -p host_vars
+mkdir -p roles
+mkdir -p roles/common
+mkdir -p roles/common/handlers
+touch roles/common/handlers/main.yml
+mkdir -p roles/common/tasks
+touch roles/common/tasks/main.yml
+mkdir -p roles/common/templates
+touch roles/common/templates/ntp.conf.j2
+mkdir -p roles/common/files
+
+mkdir -p roles/webtier
+mkdir -p roles/monitoring
+

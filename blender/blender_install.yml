@@ -1,0 +1,162 @@
+---
+--- Copyleft APGL lisense 2013
+--- Author: Kesten Broughton
+--- Date: June 8, 2013
+--- Ansible playbook for installing a blender developer environment on the cloud
+
+# following http://wiki.blender.org/index.php/Dev:2.5/Doc/Building_Blender/Git
+# and "insanely documented ansible playbook" https://gist.github.com/marktheunissen/2979474
+
+- hosts planetkesten, localhost
+  user: kesten
+  sudo: True
+  vars: ADMIN_HOME: '/home/admin'
+	# development_version_control_projects	
+	DEV_VCP_DIR: '/opt/vcp'
+	# Clone to a local svn then clone using git, or clone directly from sky with git-svn
+	# Alternatives: svn, git
+	TRUNK_CLONE_STRATEGY: svn
+	# How far back in revision history should we pull from for a new trunk instance?
+	REVISION_DEPTH: 5
+	# bleder project pristine checkout to instance	
+	BLENDER_LOCAL_TRUNK_DIR: '${DEV_VCP_DIR}/${TRUNK_CLONE_STRATEGY}/blender/blender-trunk'
+	BLENDER_ROOT_DIR: '${BLENDER_LOCAL_TRUNK_DIR}/blender
+		
+	# Because git-svn can't reach certain python extensions...
+	BLENDER_SVN_RELEASE_DIR = $DEV_VCP_DIR/svn/blender/blender-trunk/blender/release
+	BLENDER_EXTENSIONS_SCRIPTS_DIR = $BLENDER_SVN_RELEASE_DIR/scripts
+	#BLENDER_TRANSLATIONS_DIR= $DEV_VCP_DIR/svn/blender/blender-trunk/blender/release/datafiles/locale
+
+	# A place for boost, numpy, openexr and more
+	# In general, dependencies for vcp's go here.  
+	# Probably should have filtered symlinks to enable easy blow-away of deps per project
+	# Example /opt/blender/lib contains softlinks to only blender deps.
+	BLENDER_EXTERNAL_LIBS_ROOT_DIR: '/opt/lib'
+	# vars_files is better suited for distro-specific settings, however...	
+	is_ubuntu: "'${ansible_distribution}' == 'ubuntu'"
+	
+  vars_prompt:
+    passphrase: "Please enter the passphrase for the SSL certificate"
+    accept_terms: "You will now accept a number of lisensing terms for Android, oracle-JDK.  Enter to continue"
+
+tasks:
+
+  -name: Add several users
+   action: user name=$item state=present groups=sudoers, devs generate_ssh_key=yes ssh_key_bits=2048
+   with_items:
+     - admin
+     - kesten
+     - simmers
+
+  # need svn installed on the system even to do a git checkout
+  -name: set up version control	
+   action apt: pkg={{items}} state=latest update_cache=yes
+   with_items: 
+     - subversion
+     - build-essential 
+     - git-core
+     - git-svn
+   tags: 
+    - install_global
+
+  -name: setup subversion config to play nice out of the box
+  #help also creates an empty ~/.subversion dir and config files on first call 
+   command: svn help creates=$USER_HOME/.subversion
+   tags: 
+     - install_user
+
+  -name: avoid first time certificate warning
+   shell: echo ssl-trust-default-ca = no >> ~/.subversion 
+   tags: user_install
+
+  -name: set up blender directory structure in version controlled projects vcp
+   command: mkdir -p $item creates=$item
+   with_items:
+     - $BLENDER_LOCAL_TRUNK_DIR
+     - $BLENDER_BUILD_DIR
+
+  
+  -name: create a local svn clone of the svn repo starting going back REVISION_DEPTH revisions
+   subversion: repo=https://svn.blender.org/svnroot/bf-blender/trunk/blender/ dest=$BLENDER_LOCAL_TRUNK_DIR update=no depth=$REVISION_DEPTH
+   when: $TRUNK_CLONE_STRATEGY == 'svn'
+
+  -name: make a git-svn clone from the locally mirrored svn pull of the trunk
+   shell: git svn clone https://svn.blender.org/svnroot/bf-blender/trunk/blender/
+   when: $TRUNK_CLONE_STRATEGY == 'svn'
+
+  # 
+  # For discussion see http://stackoverflow.com/questions/10606535/git-svn-rebase-vs-git-rebase-trunk
+  -name: rebase git 
+   command: git svn rebase
+   when: $TRUNK_CLONE_STRATEGY == 'svn'
+
+  -name: install blender dependency libs
+   # See BUILD_NOTES.txt in same dir as script for log
+   script: $BLENDER_LOCAL_TRUNK_DIR/blender/build_files/build_environment/install_deps.sh --with-all
+
+  -name: Install cmake
+   apt: pkg=$item state=latest update_cache=yes
+   with_items: 
+     - cmake 
+     - cmake-curses-gui
+
+##########################################################################################################
+  # If strategy==git we must create separate svn repos in /scripts/addons and scripts/datafiles/locale
+  # The complex grafting magic done by svn can't be replicated by git-svn yet.
+  -name: Create extension scripts dir in vcp/svn/blender.  Auto-retrieved if strategy==svn
+   command: mkdir -p  $BLENDER_EXTENSIONS_SCRIPTS_DIR/addons creates=$BLENDER_EXTENSIONS_SCRIPTS_DIR/addons
+   when: $TRUNK_CLONE_STRATEGY == 'git'
+   tags: global_install
+
+  -name: Get addons that git can't reach to release/scripts/addons
+   # Clone into an svn directory tree separate from the git
+   subversion: repo=https://svn.blender.org/svnroot/bf-extensions/trunk/py/scripts/addons dest=$BLENDER_ROOT_DIR/release/scripts depth=$REVISION_DEPTH
+   when: $TRUNK_CLONE_STRATEGY == 'git'
+   tags: global_install
+
+  # same with locale for internationalization 
+  -name: Create extension scripts dir in vcp/svn/blender.  Auto-retrieved if strategy==svn
+   command: mkdir -p  $BLENDER_EXTENSIONS_SCRIPTS_DIR creates=$BLENDER_EXTENSIONS_SCRIPTS_DIR
+   when: $TRUNK_CLONE_STRATEGY == 'git'
+   tags: global_install
+
+  -name: Get localization files that git can't reach 
+   subversion: repo=https://svn.blender.org/svnroot/bf-translations/trunk dest=$BLENDER_RELEASE_DIR/datafiles depth=$REVISION_DEPTH
+   when: $TRUNK_CLONE_STRATEGY == 'git'
+   tags: global_install
+
+  -name: make a symlink so the files are in the expected main tree
+   command: ln -s $BLENDER_EXTENSIONS_SCRIPTS_DIR $BLENDER_ROOT_DIR/release/scripts
+   when: $TRUNK_CLONE_STRATEGY == 'git'
+   tags: global_install
+
+##########################################################################################################
+
+  -name: create a make script adding the needed BUILD_CMAKE_ARGS
+   command echo make BUILD_CMAKE_ARGS=" -D BOOST_ROOT=/opt/lib/boost -D Boost_NO_SYSTEM_PATHS=ON -D OPENEXR_ROOT_DIR=/opt/lib/openexr -D WITH_CODEC_FFMPEG=ON -D FFMPEG_LIBRARIES='avformat;avcodec;avutil;avdevice;swscale;rt;theoraenc;theora;theoradec;vorbisenc;vorbisfile;vorbis;x264;openjpeg' -D FFMPEG=/opt/lib/ffmpeg" > makelibs.sh
+  
+  -name: make makelibs.sh executable
+   command: chmod ug+x makelibs.sh
+ 
+  -name: run cmake, make, make install with a single command
+   command: chdir=$BLENDER_ROOT_DIR ./makelibs
+
+  -name: Update code trunk from sky (svn)
+   command: chdir=$BLENDER_LOCAL_TRUNK svn up
+   tags: global_update
+   when: CLONE_TRUNK_STRATEGY=='svn'
+
+  -name: Update code trunk from sky (git-svn)
+   command: chdir=$BLENDER_LOCAL_TRUNK $itme
+   with_itmes: 
+     - git svn fetch
+     - git svn rebase
+   tags: global_update
+   when: CLONE_TRUNK_STRATEGY=='git'
+  
+  -name: Update extensions when strategy==git
+   command: chdir=$item git svn fetch
+   with_items: 
+     - $BLENDER_RELEASE_DIR/addons
+     - $BLENDER_RELEASE_DIR/datafiles
+
