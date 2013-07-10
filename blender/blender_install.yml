@@ -7,6 +7,19 @@
 # following http://wiki.blender.org/index.php/Dev:2.5/Doc/Building_Blender/Git
 # and "insanely documented ansible playbook" https://gist.github.com/marktheunissen/2979474
 
+# One of the biggest barriers to entry
+# for new devs or people able to code a little and submit patches for their encountered bugs is
+# the build process.
+# The goal of this playbook is to create an easily deployable instance (cloud or local machine) 
+# that provides a global installation for users to run blender via putty or XWindows remotely, and
+# the capability to easily spin up new developer clones.  
+
+# need to deal with a problem of install_deps.sh
+# if build fails, need to wipe out all blender external libs (6 at the moment)
+# but these live in /opt/lib by default, so it's hard not to wipe everythin out.
+# ls * | grep -v canopy | xargs rm -rf
+
+
 - hosts planetkesten, localhost
   user: kesten
   sudo: True
@@ -20,7 +33,7 @@
 	REVISION_DEPTH: 5
 	# bleder project pristine checkout to instance	
 	BLENDER_LOCAL_TRUNK_DIR: '${DEV_VCP_DIR}/${TRUNK_CLONE_STRATEGY}/blender/blender-trunk'
-	BLENDER_ROOT_DIR: '${BLENDER_LOCAL_TRUNK_DIR}/blender
+	BLENDER_ROOT_DIR: '${BLENDER_LOCAL_TRUNK_DIR}/blender'
 		
 	# Because git-svn can't reach certain python extensions...
 	BLENDER_SVN_RELEASE_DIR = $DEV_VCP_DIR/svn/blender/blender-trunk/blender/release
@@ -32,6 +45,8 @@
 	# Probably should have filtered symlinks to enable easy blow-away of deps per project
 	# Example /opt/blender/lib contains softlinks to only blender deps.
 	BLENDER_EXTERNAL_LIBS_ROOT_DIR: '/opt/lib'
+	# symlink to manage all ext deps at once
+    BLENDER_EXTERNAL_LIBS_DIR: '/opt/lib/blender'
 	# vars_files is better suited for distro-specific settings, however...	
 	is_ubuntu: "'${ansible_distribution}' == 'ubuntu'"
 	
@@ -147,8 +162,8 @@ tasks:
    when: CLONE_TRUNK_STRATEGY=='svn'
 
   -name: Update code trunk from sky (git-svn)
-   command: chdir=$BLENDER_LOCAL_TRUNK $itme
-   with_itmes: 
+   command: chdir=$BLENDER_LOCAL_TRUNK $item
+   with_items: 
      - git svn fetch
      - git svn rebase
    tags: global_update
@@ -160,3 +175,13 @@ tasks:
      - $BLENDER_RELEASE_DIR/addons
      - $BLENDER_RELEASE_DIR/datafiles
 
+  -name: make directory to hold blender external lib symlinks
+   command: mkdir=$BLENDER_EXTERNAL_LIBS_DIR
+  -name: Symlink to blender external libs
+   command: ln -s ../$item $item 
+   with_items:
+     - 
+   
+  -name: Uninstall blender external libs
+   command: chdir=$BLENDER_EXTERNAL_LIBS_DIR
+   

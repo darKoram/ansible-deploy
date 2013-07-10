@@ -13,5 +13,24 @@ https://groups.google.com/forum/#!msg/ansible-project/edx8zaMbg5g/M79z0i2sBEoJ
 # Steps to use aws CLI
 http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/concepts.html#command-line-tools-api-tools
 
+# gource
+http://notwastingtime.blogspot.com/2010/05/how-to-set-up-gource-in-ubuntu-1004.html
+#dependencies
+sudo apt-get install libboost-all-dev
+sudo apt-get install libsdl-image1.2-dev
+sudo apt-get install libglm-dev
 
+kesten@kesten-K42Jr:/opt/lib/gource-0.40/x264$ make
+Makefile:3: config.mak: No such file or directory
+./configure
+Found yasm 1.1.0.2352
+Minimum version is yasm-1.2.0
+If you really want to compile without asm, configure with --disable-asm.
+make: *** [config.mak] Error 1
+
+# on ubuntu 12.04, this doesn't upgrade high enough
+sudo apt-get upgrade yasm
+# need to build trunk following
+http://www.vimp.com/en/documentation-faq-article/items/howto-compile-ffmpeg-for-ubuntu-and-debian.html
+sudo make && sudo make install
 
